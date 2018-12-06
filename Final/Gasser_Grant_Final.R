@@ -38,13 +38,8 @@ dat <- dat[,-NAcol]
 
 #before fitting a model, it is worth checking for linearity among the variables
 #takes a couple minutes
-'''
-library(GGally)
-library(reshape2)
-dat.num <- dat
-dat.num$binnedInc <- NULL
-ggpairs(dat.num)
-'''
+#library(GGally)
+#ggpairs(dat)
 
 #there are too many variables to check for linearity right now, will look after
 #doing model selection
@@ -65,7 +60,7 @@ plot(fit, which=1)
 
 
 ### Multicollinearity and Model Selection ###
-#If variables are multicollinear or dependent in any way, we want to removeone of them.
+#If variables are multicollinear or dependent in any way, we want to remove one of them.
 #We want to have fewer variables in the model to have more degrees of freedom and prevent
 #overfitting
 
@@ -78,7 +73,7 @@ vif(fit)
 fit <- lm(Y ~ . -avgDeathsPerYear, data=dat)
 vif(fit)
 
-#avgDeathsPerYear was multicollinear with popEst2015 (went from 26 to 8)
+#avgDeathsPerYear was multicollinear with popEst2015 (popEst2015 went from 26 to 8)
 
 #Remove PctPublicCoverage, highest at 23.8
 fit <- lm(Y ~ . -avgDeathsPerYear -PctPublicCoverage, data=dat)
@@ -107,7 +102,7 @@ dim(dat.lasso)
 library(glmnet)
 fit.lasso <-  cv.glmnet(x=dat.lasso,y=Y,alpha=1,nfolds=5)
 
-#Lasso shows that a lambda just below 0 and 1SD from mean has low MSE and just 17 vars
+#Lasso shows that a lambda just below 0 and 1SD from mean has low MSE and ~15 variables
 plot(fit.lasso)
 
 #Look at the variables Lasso gives
@@ -152,7 +147,7 @@ names(which(abs(influ) >  2*sqrt(p/n)))
 
 #lots of influential points, look at Cook's distance to see which are most influential
 
-#Cook's Distance: 282 by far, 627, 1059 
+#Cook's Distance: 282 the most, 627, 1059 
 #282 outlier wrp to X and Y, 627 and 1059 outliers wrp to X
 plot(fit.final, which = 4)
 
@@ -204,17 +199,36 @@ predict(fit.final, newX, interval="prediction", level=.95)
 
 mean(Y)
 
-#The model predicts a deathRate of 171 for this county. 
-#The Prediction interval is (168.1, 174.5).
+#The model predicts a deathRate of 171 for this county, not far below the mean deathRate
+
+
+### EVALUATE MODEL ###
+y.hat <- predict(fit.final)
+res <- as.numeric(Y-y.hat)
+mse <- sum(res^2) #Mean Squared Error: 1149073
+mse
+
+#What would happen if we couldn't collect data for incidenceRate?
+fit.without <- lm(Y ~ + povertyPercent + binnedInc + MedianAgeMale + PctHS18_24
+                + PctBachDeg25_Over + PctUnemployed16_Over + PctPublicCoverageAlone + PctOtherRace
+                + PctMarriedHouseholds + BirthRate, data=dat)
+summary(fit.without)
+
+#Note: Adj R^2 decreased significantly from .51 to .38. This model is thus not as useful as one including incidenceRate.
+
+y.hat.2 <- predict(fit.without)
+res.2 <- as.numeric(Y-y.hat.2)
+mse.2 <- sum(res.2^2)
+mse.2 #1454558, mean squared error increased as well, meaning our model is less accurate without incidenceRate.
 
 ### SUMMARY ###
-#Overall, this model is useful. Good is subjective and may not be the right word. The outliers pose a concern
+#Overall, the model is useful. Good is subjective and may not be the right word. The outliers pose a concern
 # and are likely the culprits of the violated assumptions. The nonindependence is concerning as well and may have to do
 #with the fact that the nature of the data is spatial.
 
 #Of the three variables that are difficult to collect, I would suggest focusing on incidenceRate. avgDeathsPerYear had 
 #multicollinearity with other variables and avgAnnCount was removed by Lasso. We can still have a good model with just
-#using incidenceRate out of those three.
+#using incidenceRate out of those three. Not using incidenceRate gave an inferior model as evidenced by Adj R^2 and MSE.
 
 #The prediction is fairly reliable since it is at the 95% level. There is a 95% probability another observation
 #with the same values will be in this range. 5% probability it won't be.
