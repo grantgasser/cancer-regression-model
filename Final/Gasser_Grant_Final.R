@@ -216,7 +216,7 @@ mean(Y)
 #multicollinearity with other variables and avgAnnCount was removed by Lasso. We can still have a good model with just
 #using incidenceRate out of those three.
 
-#The prediction is fairly reliable since it is at the 95% level. There is a 95% chance of another similar observation
-#will be in this range. 5% probability it won't be.
+#The prediction is fairly reliable since it is at the 95% level. There is a 95% probability another observation
+#with the same values will be in this range. 5% probability it won't be.
 
 
