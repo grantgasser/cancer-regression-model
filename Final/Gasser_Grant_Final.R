@@ -1,5 +1,5 @@
 ###################### 
-# Final Exam
+# Cancer Regression Model
 # Grant Gasser
 # Fall 2018
 #####################
@@ -205,7 +205,7 @@ mean(Y)
 ### EVALUATE MODEL ###
 y.hat <- predict(fit.final)
 res <- as.numeric(Y-y.hat)
-mse <- sum(res^2) #Mean Squared Error: 1149073
+mse <- sum(res^2)/(n-p) #Mean Squared Error: 379.6
 mse
 
 #What would happen if we couldn't collect data for incidenceRate?
@@ -218,8 +218,8 @@ summary(fit.without)
 
 y.hat.2 <- predict(fit.without)
 res.2 <- as.numeric(Y-y.hat.2)
-mse.2 <- sum(res.2^2)
-mse.2 #1454558, mean squared error increased as well, meaning our model is less accurate without incidenceRate.
+mse.2 <- sum(res.2^2)/(n-p-1)
+mse.2 #480.7, mean squared error increased as well, meaning our model is less accurate without incidenceRate.
 
 ### SUMMARY ###
 #Overall, the model is useful. Good is subjective and may not be the right word. The outliers pose a concern
